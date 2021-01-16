@@ -29,9 +29,11 @@ const selections = [
     "View All Employees by Manager",
     "Add Employee",
     "Remove Employee",
+    "View All Roles",
     "Update Employee Role",
     "Update Employee Manager",
-    "View All Roles"
+    "View All Departments",
+    "Add Department"
 ];
 
 const mainSelection = () => {
@@ -61,15 +63,22 @@ const mainSelection = () => {
                 case "Remove Employee":
                     removeEmployee();
                     break;
+                case "View All Roles":
+                    viewRoles();
+                    break;
                 case "Update Employee Role":
                     updateRole();
                     break;
                 case "Update Employee Manager":
                     updateManager();
                     break;
-                case "View All Roles":
-                    viewRoles();
+                case "View All Departments":
+                    viewDepartments();
                     break;
+                case "Add Department":
+                    addDepartment();
+                    break;
+
                 default:
                     //something
             }
@@ -113,7 +122,35 @@ const continueORexit = () => {
 }
 
 const viewAll = () => {
-    connection.query("SELECT * FROM employees", (err, result) => {
+    let query = `SELECT id, first_name, last_name, title, name, salary 
+    FROM employees
+
+    INNER JOIN roles
+        ON employees.role_id = roles.id
+    INNER JOIN departments
+        ON roles.department_id = departments.id`;
+    
+    connection.query(query, (err, result) => {
+        if (err) throw err;
+        console.table(result);
+        continueORexit();
+    });
+}
+
+const viewByDepartment = () => {
+    inquirer
+        .prompt({
+            name: department,
+            type: 'list',
+            message: "Which department would you like to "
+
+        })
+    let query = "";
+}
+
+const viewRoles = () => {
+    let query = "SELECT * FROM roles";
+    connection.query(query, (err, result) => {
         if (err) throw err;
         console.table(result);
         continueORexit();
