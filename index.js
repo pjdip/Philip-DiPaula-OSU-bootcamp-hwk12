@@ -41,7 +41,39 @@ const mainSelection = () => {
             message: "What would you like to do?",
             choices: selections
         }).then(answer => {
-            if (answer.main === "View All Employees") {
+            switch (answer.main) {
+                case "View All Employees":
+                    viewAll();
+                    break;
+                case "View All Employees by Department":
+                    viewByDepartment();
+                    break;
+                case "View All Employees by Role":
+                    viewByRole();
+                    break;
+                case "View All Employees by Manager":
+                    viewByManager();
+                    break;
+                case "Add Employee":
+                    addEmployee();
+                    break;
+                case "Remove Employee":
+                    removeEmployee();
+                    break;
+                case "Update Employee Role":
+                    updateRole();
+                    break;
+                case "Update Employee Manager":
+                    updateManager();
+                    break;
+                case "View All Roles":
+                    viewRoles();
+                    break;
+                default:
+                    //something
+            }
+
+/*             if (answer.main === "View All Employees") {
                 viewAll();
             } else if (answer.main === "View All Employees by Department") {
                 viewByDepartment();
@@ -59,7 +91,7 @@ const mainSelection = () => {
                 updateManager();
             } else if (answer.main === "View All Roles") {
                 viewRoles();
-            }
+            } */
         });
 }
 
@@ -80,5 +112,8 @@ const continueORexit = () => {
 }
 
 const viewAll = () => {
-    
+    connection.query("SELECT * FROM employees", (err, results) => {
+        if (err) throw err;
+
+    });
 }
