@@ -88,9 +88,11 @@ const mainSelection = () => {
                     removeEmployee();
                     break;
                 case "View All Roles":
+                    //done
                     viewRoles();
                     break;
                 case "Add Role":
+                    //done
                     addRole();
                     break;
                 case "Remove Role":
@@ -103,15 +105,19 @@ const mainSelection = () => {
                     updateManager();
                     break;
                 case "View All Departments":
+                    //done
                     viewDepartments();
                     break;
                 case "Add Department":
+                    //done
                     addDepartment();
                     break;
                 case "Remove Department":
+                    //done
                     removeDepartment();
                     break;
                 case "Exit":
+                    //done
                     connection.end();
                     break;
 
@@ -150,7 +156,7 @@ const viewAll = () => {
 // change 'name' to 'department' in departments table
 const viewRoles = () => {
     console.log("Displaying all Roles...\n");
-    let query1 = "SELECT title, salary, name AS department FROM roles INNER JOIN departments ON roles.department_id = departments.id";
+    let query1 = "SELECT roles.id, title, salary, name AS department FROM roles INNER JOIN departments ON roles.department_id = departments.id";
     connection.query(query1, (err, result) => {
         if (err) throw err;
         console.table(result);
@@ -204,8 +210,60 @@ const addRole = () => {
                 );
                 mainSelection();
             });
-
     });
+}
+
+const removeRole = () => {
+    inquirer
+        .prompt(
+        {
+            name: "removal_method",
+            type: "list",
+            message: "Would you like to remove roles by name or id? ",
+            choices: ["id", "title"]
+        }).then(answers => {
+            if (answers.removal_method === "id") {
+                inquirer
+                    .prompt({
+                        name: "byId",
+                        type: "input",
+                        message: "Please input the id of the role you wish to remove: "
+                    })
+                    .then(answer1 => {
+                        connection.query(
+                            "DELETE FROM roles WHERE ?",
+                            {
+                                id: answer1.byId
+                            },
+                            (err, res) => {
+                                if (err) throw err;
+                                console.log(res.affectedRows + " roles removed!\n");
+                                mainSelection();
+                            }
+                        );
+                    });
+            } else if (answers.removal_method === "title") {
+                inquirer
+                    .prompt({
+                        name: "byTitle",
+                        type: "input",
+                        message: "Please input the title of the role you wish to remove: "
+                    })
+                    .then(answer2 => {
+                        connection.query(
+                            "DELETE FROM roles WHERE ?",
+                            {
+                                title: answer2.byTitle
+                            },
+                            (err, res) => {
+                                if (err) throw err;
+                                console.log(res.affectedRows + " roles removed!\n");
+                                mainSelection();
+                            }
+                        );
+                    });
+            }
+        });
 }
 
 const viewDepartments = () => {
@@ -270,7 +328,7 @@ const removeDepartment = () => {
                     .prompt({
                         name: "byId",
                         type: "input",
-                        message: "Please input the id of the department you wish to remove "
+                        message: "Please input the id of the department you wish to remove: "
                     })
                     .then(answer1 => {
                         connection.query(
@@ -290,7 +348,7 @@ const removeDepartment = () => {
                     .prompt({
                         name: "byName",
                         type: "input",
-                        message: "Please input the name of the department you wish to remove "
+                        message: "Please input the name of the department you wish to remove: "
                     })
                     .then(answer2 => {
                         connection.query(
