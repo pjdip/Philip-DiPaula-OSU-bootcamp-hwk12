@@ -89,7 +89,6 @@ const mainSelection = () => {
                     break;
                 case "View All Roles":
                     viewRoles();
-                    continueORexit();
                     break;
                 case "Update Employee Role":
                     updateRole();
@@ -101,11 +100,9 @@ const mainSelection = () => {
                     break;
                 case "View All Departments":
                     viewDepartments();
-                    continueORexit();
                     break;
                 case "Add Department":
                     addDepartment();
-                    continueORexit();
                     break;
                 case "Remove Department":
                     removeDept();
@@ -170,6 +167,7 @@ const viewRoles = () => {
     connection.query(query, (err, result) => {
         if (err) throw err;
         console.table(result);
+        continueORexit();
     });
 }
 
@@ -179,6 +177,7 @@ const viewDepartments = () => {
     connection.query(query, (err, result) => {
         if (err) throw err;
         console.table(result);
+        continueORexit();
     });
 }
 
@@ -196,28 +195,33 @@ const addDepartment = () => {
             type: "input",
             message: "Please enter the name of the department you wish to add: "
         }).then(answer => {
+            let newDept = false;
             let query1 = "SELECT * FROM departments";
             connection.query(query1, (err, results) => {
                 if (err) throw err;
-                console.log(results);
+/*                 console.log(results); */
                 results.forEach(result => {
                     if (answer.department === result.name) {
                         console.log("That's already a department");
                         addDepartment();
                     } else {
-                        let query2 = "INSERT INTO departments SET ?";
-                        connection.query(
-                            query2,
-                            {
-                                name: answer.department
-                            },
-                            (err, res) => {
-                                if (err) throw err;
-                                console.log(res.affectedRows + " Department added!\n");
-                            }
-                        );
+                        newDept = true;
                     }
                 });
+                if (newDept === true) {
+                    let query2 = "INSERT INTO departments SET ?";
+                    connection.query(
+                        query2,
+                        {
+                            name: answer.department
+                        },
+                        (err, res) => {
+                            if (err) throw err;
+                            console.log(res.affectedRows + " Department added!\n");
+                        }
+                    );
+                    continueORexit();
+                }
             });
         });
 }
