@@ -112,7 +112,7 @@ const continueORexit = () => {
 }
 
 const viewAll = () => {
-    connection.query("SELECT * FROM employees", (err, results) => {
+    connection.query("SELECT * FROM employees", (err, result) => {
         if (err) throw err;
         console.table(result);
         continueORexit();
