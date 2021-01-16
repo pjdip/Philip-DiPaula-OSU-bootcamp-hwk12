@@ -22,6 +22,23 @@ connection.connect(err => {
     mainSelection();
 });
 
+// Prompts user to return to main menu or end connection
+const continueORexit = () => {
+    inquirer
+        .prompt({
+            name: "continue",
+            type: "list",
+            message: "What would you like to do?",
+            choices: ["More Database Things", "Exit\n"]
+        }).then(answer => {
+            if (answer.continue === "Exit") {
+                connection.end();
+            } else {
+                mainSelection();
+            }
+        });
+}
+
 const selections = [
     "View All Employees",
     "View All Employees by Department",
@@ -48,21 +65,27 @@ const mainSelection = () => {
             switch (answer.main) {
                 case "View All Employees":
                     viewAll();
+                    continueORexit();
                     break;
                 case "View All Employees by Department":
                     viewByDepartment();
+                    continueORexit();
                     break;
                 case "View All Employees by Role":
                     viewByRole();
+                    continueORexit();
                     break;
                 case "View All Employees by Manager":
                     viewByManager();
+                    continueORexit();
                     break;
                 case "Add Employee":
                     addEmployee();
+                    continueORexit();
                     break;
                 case "Remove Employee":
                     removeEmployee();
+                    continueORexit();
                     break;
                 case "View All Roles":
                     viewRoles();
@@ -70,9 +93,11 @@ const mainSelection = () => {
                     break;
                 case "Update Employee Role":
                     updateRole();
+                    continueORexit();
                     break;
                 case "Update Employee Manager":
                     updateManager();
+                    continueORexit();
                     break;
                 case "View All Departments":
                     viewDepartments();
@@ -80,9 +105,10 @@ const mainSelection = () => {
                     break;
                 case "Add Department":
                     addDepartment();
+                    continueORexit();
                     break;
                 case "Remove Department":
-                    removeDepartment();
+                    removeDept();
                     break;
 
                 default:
@@ -111,22 +137,6 @@ const mainSelection = () => {
         });
 }
 
-const continueORexit = () => {
-    inquirer
-        .prompt({
-            name: "proceed",
-            type: "list",
-            message: "What would you like to do?",
-            choices: ["More Database Things", "Exit"]
-        }).then(answer => {
-            if (answer.proceed === "Exit") {
-                connection.end();
-            } else {
-                mainSelection();
-            }
-        });
-}
-
 const viewAll = () => {
     let query = `SELECT id, first_name, last_name, title, name, salary 
     FROM employees
@@ -139,11 +149,10 @@ const viewAll = () => {
     connection.query(query, (err, result) => {
         if (err) throw err;
         console.table(result);
-        continueORexit();
     });
 }
 
-const viewByDepartment = () => {
+/* const viewByDepartment = () => {
     inquirer
         .prompt({
             name: department,
@@ -152,7 +161,7 @@ const viewByDepartment = () => {
 
         })
     let query = "";
-}
+} */
 
 // change 'name' to 'department' in departments table
 const viewRoles = () => {
@@ -173,12 +182,12 @@ const viewDepartments = () => {
     });
 }
 
-const addEmployee = () => {
+/* const addEmployee = () => {
     inquirer
         .prompt({
             name: banana
         })
-}
+} */
 
 const addDepartment = () => {
     inquirer
@@ -205,12 +214,32 @@ const addDepartment = () => {
                             (err, res) => {
                                 if (err) throw err;
                                 console.log(res.affectedRows + " Department added!\n");
-                                continueORexit();
                             }
                         );
                     }
                 });
             });
+        });
+}
+
+const removeDept = () => {
+    inquirer
+        .prompt({
+            name: "deleted",
+            type: "input",
+            message: "Please enter the name of the department you wish to remove: ",
+        }).then(answer => {
+            connection.query(
+                "DELETE FROM departments WHERE ?",
+                {
+                    name: answer.deleted
+                },
+                (err, res) => {
+                    if (err) throw err;
+                    console.log(res.affectedRows + " departments removed!\n");
+                    continueORexit();
+                }
+            );
         });
 }
 
@@ -222,7 +251,7 @@ const removeDepartment = () => {
             name: "removal_method",
             type: "list",
             message: "Would you like to remove departments by name or id? ",
-            choices: ["id", "name"]
+            choices: ["id", "name\n"]
         },
         {
             name: "byId",
@@ -246,7 +275,6 @@ const removeDepartment = () => {
                     (err, res) => {
                         if (err) throw err;
                         console.log(res.affectedRows + " departments removed!\n");
-                        continueORexit();
                     }
                 );
             } else if (answers.removal_method === "name") {
@@ -258,13 +286,12 @@ const removeDepartment = () => {
                     (err, res) => {
                         if (err) throw err;
                         console.log(res.affectedRows + " departments removed!\n");
-                        continueORexit();
                     }
                 );
             }
         });
 
-    let query = "SELECT * FROM departments";
+/*     let query = "SELECT * FROM departments";
     let depts = [];
     connection.query(query, (err, res) => {
         if(err) throw err;
@@ -276,5 +303,5 @@ const removeDepartment = () => {
             
         })
         console.log(depts);
-    });
+    }); */
 }
