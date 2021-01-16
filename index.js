@@ -149,8 +149,8 @@ const viewAll = () => {
 
 // change 'name' to 'department' in departments table
 const viewRoles = () => {
-    console.log("Selecting all Roles...\n");
-    let query1 = "SELECT title, salary, name FROM roles INNER JOIN departments ON roles.department_id = departments.id";
+    console.log("Displaying all Roles...\n");
+    let query1 = "SELECT title, salary, name AS department FROM roles INNER JOIN departments ON roles.department_id = departments.id";
     connection.query(query1, (err, result) => {
         if (err) throw err;
         console.table(result);
@@ -168,7 +168,7 @@ const addRole = () => {
             roleList.push(role.name);
         });
         inquirer
-            .prompt({
+            .prompt([{
                 name: "title",
                 type: "input",
                 message: "Please input the title for the new role: "
@@ -183,7 +183,7 @@ const addRole = () => {
                 type: "list",
                 message: "Please choose which department this role belongs to: ",
                 choices: roleList
-            }).then(answer => {
+            }]).then(answer => {
                 result.forEach(role => {
                     if (answer.dept === role.name) {
                         roleId = role.id;
@@ -209,7 +209,7 @@ const addRole = () => {
 }
 
 const viewDepartments = () => {
-    console.log("Selecting all Departments...\n");
+    console.log("Displaying all Departments...\n");
     let query1 = "SELECT * FROM departments";
     connection.query(query1, (err, result) => {
         if (err) throw err;
