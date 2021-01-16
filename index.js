@@ -33,7 +33,8 @@ const selections = [
     "Update Employee Role",
     "Update Employee Manager",
     "View All Departments",
-    "Add Department"
+    "Add Department",
+    "Remove Department"
 ];
 
 const mainSelection = () => {
@@ -65,6 +66,7 @@ const mainSelection = () => {
                     break;
                 case "View All Roles":
                     viewRoles();
+                    continueORexit();
                     break;
                 case "Update Employee Role":
                     updateRole();
@@ -74,9 +76,13 @@ const mainSelection = () => {
                     break;
                 case "View All Departments":
                     viewDepartments();
+                    continueORexit();
                     break;
                 case "Add Department":
                     addDepartment();
+                    break;
+                case "Remove Department":
+                    removeDepartment();
                     break;
 
                 default:
@@ -141,7 +147,7 @@ const viewByDepartment = () => {
     inquirer
         .prompt({
             name: department,
-            type: 'list',
+            type: "list",
             message: "Which department would you like to "
 
         })
@@ -155,7 +161,6 @@ const viewRoles = () => {
     connection.query(query, (err, result) => {
         if (err) throw err;
         console.table(result);
-        continueORexit();
     });
 }
 
@@ -165,6 +170,111 @@ const viewDepartments = () => {
     connection.query(query, (err, result) => {
         if (err) throw err;
         console.table(result);
-        continueORexit();
+    });
+}
+
+const addEmployee = () => {
+    inquirer
+        .prompt({
+            name: banana
+        })
+}
+
+const addDepartment = () => {
+    inquirer
+        .prompt({
+            name: "department",
+            type: "input",
+            message: "Please enter the name of the department you wish to add: "
+        }).then(answer => {
+            let query1 = "SELECT * FROM departments";
+            connection.query(query1, (err, results) => {
+                if (err) throw err;
+                console.log(results);
+                results.forEach(result => {
+                    if (answer.department === result.name) {
+                        console.log("That's already a department");
+                        addDepartment();
+                    } else {
+                        let query2 = "INSERT INTO departments SET ?";
+                        connection.query(
+                            query2,
+                            {
+                                name: answer.department
+                            },
+                            (err, res) => {
+                                if (err) throw err;
+                                console.log(res.affectedRows + " Department added!\n");
+                                continueORexit();
+                            }
+                        );
+                    }
+                });
+            });
+        });
+}
+
+const removeDepartment = () => {
+    viewDepartments();
+    inquirer
+        .prompt(
+        {
+            name: "removal_method",
+            type: "list",
+            message: "Would you like to remove departments by name or id? ",
+            choices: ["id", "name"]
+        },
+        {
+            name: "byId",
+            type: "input",
+            message: "Please input the id of the department you wish to remove ",
+            when: answers => {answers.removal_method === "id"}
+        },
+        {
+            name: "byName",
+            type: "input",
+            message: "Please input the name of the department you wish to remove ",
+            when: answers => {answers.removal_method === "name"}
+        }
+        ).then(answers => {
+            if (answers.removal_method === "id") {
+                connection.query(
+                    "DELETE FROM departments WHERE ?",
+                    {
+                        id: answers.byId
+                    },
+                    (err, res) => {
+                        if (err) throw err;
+                        console.log(res.affectedRows + " departments removed!\n");
+                        continueORexit();
+                    }
+                );
+            } else if (answers.removal_method === "name") {
+                connection.query(
+                    "DELETE FROM departments WHERE ?",
+                    {
+                        name: answers.byName
+                    },
+                    (err, res) => {
+                        if (err) throw err;
+                        console.log(res.affectedRows + " departments removed!\n");
+                        continueORexit();
+                    }
+                );
+            }
+        });
+
+    let query = "SELECT * FROM departments";
+    let depts = [];
+    connection.query(query, (err, res) => {
+        if(err) throw err;
+        res.forEach(dept => {
+            depts.push(dept.name);
+        });
+        inquirer
+        .prompt({
+            
+        })
+        console.log(depts);
     });
 }
