@@ -29,3 +29,10 @@ CREATE TABLE employees (
     FOREIGN KEY (role_id) REFERENCES roles(id),
     FOREIGN KEY (manager_id) REFERENCES employees(id)
 );
+
+
+/* as setting tabel headings */
+SELECT emp.first_name AS employee, mgr.first_name AS manager
+/* emp & mgr are alias */
+FROM employees emp
+LEFT JOIN employees mgr ON mgr.id = emp.manager_id;

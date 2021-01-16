@@ -1,6 +1,7 @@
 // Dependencies
 const mysql = require('mysql');
 const inquirer = require('inquirer');
+const util = require('util');
 const cTable = require('console.table');
 
 // Define Connection
@@ -11,6 +12,8 @@ const connection = mysql.createConnection({
     password: 'Z9PpV$u!Rc3G',
     database: 'employee_db'
 });
+
+const query = util.promisify(connection.query);
 
 // Establish Connection
 connection.connect(err => {
@@ -51,7 +54,8 @@ const selections = [
     "Update Employee Manager",
     "View All Departments",
     "Add Department",
-    "Remove Department"
+    "Remove Department",
+    "Exit"
 ];
 
 const mainSelection = () => {
@@ -65,38 +69,30 @@ const mainSelection = () => {
             switch (answer.main) {
                 case "View All Employees":
                     viewAll();
-                    continueORexit();
                     break;
                 case "View All Employees by Department":
                     viewByDepartment();
-                    continueORexit();
                     break;
                 case "View All Employees by Role":
                     viewByRole();
-                    continueORexit();
                     break;
                 case "View All Employees by Manager":
                     viewByManager();
-                    continueORexit();
                     break;
                 case "Add Employee":
                     addEmployee();
-                    continueORexit();
                     break;
                 case "Remove Employee":
                     removeEmployee();
-                    continueORexit();
                     break;
                 case "View All Roles":
                     viewRoles();
                     break;
                 case "Update Employee Role":
                     updateRole();
-                    continueORexit();
                     break;
                 case "Update Employee Manager":
                     updateManager();
-                    continueORexit();
                     break;
                 case "View All Departments":
                     viewDepartments();
@@ -105,37 +101,20 @@ const mainSelection = () => {
                     addDepartment();
                     break;
                 case "Remove Department":
-                    removeDept();
+                    removeDepartment();
+                    break;
+                case "Exit":
+                    connection.end();
                     break;
 
                 default:
                     //something
             }
-
-/*             if (answer.main === "View All Employees") {
-                viewAll();
-            } else if (answer.main === "View All Employees by Department") {
-                viewByDepartment();
-            } else if (answer.main === "View All Employees by Role") {
-                viewByRole();
-            } else if (answer.main === "View All Employees by Manager") {
-                viewByManager();
-            } else if (answer.main === "Add Employee") {
-                addEmployee();
-            } else if (answer.main === "Remove Employee") {
-                removeEmployee();
-            } else if (answer.main === "Update Employee Role") {
-                updateRole();
-            } else if (answer.main === "Update Employee Manager") {
-                updateManager();
-            } else if (answer.main === "View All Roles") {
-                viewRoles();
-            } */
         });
 }
 
 const viewAll = () => {
-    let query = `SELECT id, first_name, last_name, title, name, salary 
+    let query1 = `SELECT id, first_name, last_name, title, name, salary 
     FROM employees
 
     INNER JOIN roles
@@ -143,7 +122,7 @@ const viewAll = () => {
     INNER JOIN departments
         ON roles.department_id = departments.id`;
     
-    connection.query(query, (err, result) => {
+    connection.query(query1, (err, result) => {
         if (err) throw err;
         console.table(result);
     });
@@ -163,21 +142,21 @@ const viewAll = () => {
 // change 'name' to 'department' in departments table
 const viewRoles = () => {
     console.log("Selecting all Roles...\n");
-    let query = "SELECT title, salary, name FROM roles INNER JOIN departments ON roles.department_id = departments.id";
-    connection.query(query, (err, result) => {
+    let query1 = "SELECT title, salary, name FROM roles INNER JOIN departments ON roles.department_id = departments.id";
+    connection.query(query1, (err, result) => {
         if (err) throw err;
         console.table(result);
-        continueORexit();
+        mainSelection();
     });
 }
 
 const viewDepartments = () => {
     console.log("Selecting all Departments...\n");
-    let query = "SELECT * FROM departments";
-    connection.query(query, (err, result) => {
+    let query1 = "SELECT * FROM departments";
+    connection.query(query1, (err, result) => {
         if (err) throw err;
         console.table(result);
-        continueORexit();
+        mainSelection();
     });
 }
 
@@ -220,92 +199,61 @@ const addDepartment = () => {
                             console.log(res.affectedRows + " Department added!\n");
                         }
                     );
-                    continueORexit();
+                    mainSelection();
                 }
             });
         });
 }
 
-const removeDept = () => {
-    inquirer
-        .prompt({
-            name: "deleted",
-            type: "input",
-            message: "Please enter the name of the department you wish to remove: ",
-        }).then(answer => {
-            connection.query(
-                "DELETE FROM departments WHERE ?",
-                {
-                    name: answer.deleted
-                },
-                (err, res) => {
-                    if (err) throw err;
-                    console.log(res.affectedRows + " departments removed!\n");
-                    continueORexit();
-                }
-            );
-        });
-}
-
 const removeDepartment = () => {
-    viewDepartments();
     inquirer
         .prompt(
         {
             name: "removal_method",
             type: "list",
             message: "Would you like to remove departments by name or id? ",
-            choices: ["id", "name\n"]
-        },
-        {
-            name: "byId",
-            type: "input",
-            message: "Please input the id of the department you wish to remove ",
-            when: answers => {answers.removal_method === "id"}
-        },
-        {
-            name: "byName",
-            type: "input",
-            message: "Please input the name of the department you wish to remove ",
-            when: answers => {answers.removal_method === "name"}
-        }
-        ).then(answers => {
+            choices: ["id", "name"]
+        }).then(answers => {
             if (answers.removal_method === "id") {
-                connection.query(
-                    "DELETE FROM departments WHERE ?",
-                    {
-                        id: answers.byId
-                    },
-                    (err, res) => {
-                        if (err) throw err;
-                        console.log(res.affectedRows + " departments removed!\n");
-                    }
-                );
+                inquirer
+                    .prompt({
+                        name: "byId",
+                        type: "input",
+                        message: "Please input the id of the department you wish to remove "
+                    })
+                    .then(answer1 => {
+                        connection.query(
+                            "DELETE FROM departments WHERE ?",
+                            {
+                                id: answer1.byId
+                            },
+                            (err, res) => {
+                                if (err) throw err;
+                                console.log(res.affectedRows + " departments removed!\n");
+                                mainSelection();
+                            }
+                        );
+                    });
             } else if (answers.removal_method === "name") {
-                connection.query(
-                    "DELETE FROM departments WHERE ?",
-                    {
-                        name: answers.byName
-                    },
-                    (err, res) => {
-                        if (err) throw err;
-                        console.log(res.affectedRows + " departments removed!\n");
-                    }
-                );
+                inquirer
+                    .prompt({
+                        name: "byName",
+                        type: "input",
+                        message: "Please input the name of the department you wish to remove "
+                    })
+                    .then(answer2 => {
+                        connection.query(
+                            "DELETE FROM departments WHERE ?",
+                            {
+                                name: answer2.byName
+                            },
+                            (err, res) => {
+                                if (err) throw err;
+                                console.log(res.affectedRows + " departments removed!\n");
+                                mainSelection();
+                            }
+                        );
+                    });
             }
         });
-
-/*     let query = "SELECT * FROM departments";
-    let depts = [];
-    connection.query(query, (err, res) => {
-        if(err) throw err;
-        res.forEach(dept => {
-            depts.push(dept.name);
-        });
-        inquirer
-        .prompt({
-            
-        })
-        console.log(depts);
-    }); */
 }
