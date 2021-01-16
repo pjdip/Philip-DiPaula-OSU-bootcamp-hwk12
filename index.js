@@ -148,8 +148,20 @@ const viewByDepartment = () => {
     let query = "";
 }
 
+// change 'name' to 'department' in departments table
 const viewRoles = () => {
-    let query = "SELECT * FROM roles";
+    console.log("Selecting all Roles...\n");
+    let query = "SELECT title, salary, name FROM roles INNER JOIN departments ON roles.department_id = departments.id";
+    connection.query(query, (err, result) => {
+        if (err) throw err;
+        console.table(result);
+        continueORexit();
+    });
+}
+
+const viewDepartments = () => {
+    console.log("Selecting all Departments...\n");
+    let query = "SELECT * FROM departments";
     connection.query(query, (err, result) => {
         if (err) throw err;
         console.table(result);
