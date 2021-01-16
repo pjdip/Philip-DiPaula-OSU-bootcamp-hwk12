@@ -20,3 +20,44 @@ connection.connect(err => {
     console.log("connected as id: " + connection.threadId);
 });
 
+const selections = [
+    "View All Employees",
+    "View All Employees by Department",
+    "View All Employees by Role",
+    "View All Employees by Manager",
+    "Add Employee",
+    "Remove Employee",
+    "Update Employee Role",
+    "Update Employee Manager",
+    "View All Roles"
+];
+
+const mainSelection = () => {
+    inquirer
+        .prompt({
+            name: "main",
+            type: "list",
+            message: "What would you like to do?",
+            choices: selections
+        }).then(answer => {
+            if (answer.main === "View All Employees") {
+                viewAll();
+            } else if (answer.main === "View All Employees by Department") {
+                viewByDepartment();
+            } else if (answer.main === "View All Employees by Role") {
+                viewByRole();
+            } else if (answer.main === "View All Employees by Manager") {
+                viewByManager();
+            } else if (answer.main === "Add Employee") {
+                addEmployee();
+            } else if (answer.main === "Remove Employee") {
+                removeEmployee();
+            } else if (answer.main === "Update Employee Role") {
+                updateRole();
+            } else if (answer.main === "Update Employee Manager") {
+                updateManager();
+            } else if (answer.main === "View All Roles") {
+                viewRoles();
+            }
+        });
+}
