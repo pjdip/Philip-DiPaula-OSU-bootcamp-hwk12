@@ -18,6 +18,7 @@ connection.connect(err => {
         return;
     }
     console.log("connected as id: " + connection.threadId);
+    mainSelection();
 });
 
 const selections = [
@@ -60,4 +61,24 @@ const mainSelection = () => {
                 viewRoles();
             }
         });
+}
+
+const continueORexit = () => {
+    inquirer
+        .prompt({
+            name: "proceed",
+            type: "list",
+            message: "What would you like to do?",
+            choices: ["More Database Things", "Exit"]
+        }).then(answer => {
+            if (answer.proceed === "Exit") {
+                connection.end();
+            } else {
+                mainSelection();
+            }
+        });
+}
+
+const viewAll = () => {
+    
 }
