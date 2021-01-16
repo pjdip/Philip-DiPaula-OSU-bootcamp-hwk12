@@ -50,6 +50,8 @@ const selections = [
     "Add Employee",
     "Remove Employee",
     "View All Roles",
+    "Add Role",
+    "Remove Role",
     "Update Employee Role",
     "Update Employee Manager",
     "View All Departments",
@@ -87,6 +89,12 @@ const mainSelection = () => {
                     break;
                 case "View All Roles":
                     viewRoles();
+                    break;
+                case "Add Role":
+                    addRole();
+                    break;
+                case "Remove Role":
+                    removeRole();
                     break;
                 case "Update Employee Role":
                     updateRole();
@@ -150,6 +158,56 @@ const viewRoles = () => {
     });
 }
 
+const addRole = () => {
+    let roleList = [];
+    let roleId;
+    let query1 = "SELECT * FROM departments";
+    connection.query(query1, (err, result) => {
+        if (err) throw err;
+        result.forEach(role => {
+            roleList.push(role.name);
+        });
+        inquirer
+            .prompt({
+                name: "title",
+                type: "input",
+                message: "Please input the title for the new role: "
+            },
+            {
+                name: "salary",
+                type: "input",
+                message: "Please input the salary for the new role: "
+            },
+            {
+                name: "dept",
+                type: "list",
+                message: "Please choose which department this role belongs to: ",
+                choices: roleList
+            }).then(answer => {
+                result.forEach(role => {
+                    if (answer.dept === role.name) {
+                        roleId = role.id;
+                    }
+                });
+                let query2 = "INSERT INTO roles SET ?";
+                connection.query(
+                    query2,
+                    {
+                        title: answer.title,
+                        salary: answer.salary,
+                        department_id: roleId
+                    },
+                    (err, res) => {
+                        if (err) throw err;
+                        console.log(res.affectedRows + " Department added!\n");
+                    }
+                );
+                mainSelection();
+            });
+
+    });
+}
+
 const viewDepartments = () => {
     console.log("Selecting all Departments...\n");
     let query1 = "SELECT * FROM departments";
@@ -159,13 +217,6 @@ const viewDepartments = () => {
         mainSelection();
     });
 }
-
-/* const addEmployee = () => {
-    inquirer
-        .prompt({
-            name: banana
-        })
-} */
 
 const addDepartment = () => {
     inquirer
