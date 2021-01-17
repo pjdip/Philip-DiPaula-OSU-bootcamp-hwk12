@@ -13,4 +13,5 @@ Special Thanks to mysql documentation:
 * https://dev.mysql.com/doc/mysql-tutorial-excerpt/5.7/en/example-foreign-keys.html
 * https://www.mysqltutorial.org/mysql-foreign-key/
 * https://www.mysqltutorial.org/mysql-inner-join.aspx/
+* https://www.mysqltutorial.org/mysql-self-join/
 * https://www.w3schools.com/sql/sql_join.asp

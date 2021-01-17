@@ -197,7 +197,57 @@ const readEmployeesBy = filter => {
             });
             break;
         case "View By Manager":
-
+            let managerList = [];
+            query1 = `
+            SELECT
+                id, CONCAT (first_name, ' ', last_name) as manager
+            FROM employees
+            WHERE manager_id IS NULL
+            `;
+            connection.query(query1, (err, result) => {
+                if (err) throw err;
+                result.forEach(res => {
+                    managerList.push(res.manager);
+                });
+                inquirer
+                    .prompt({
+                        name: "manager",
+                        type: "list",
+                        message: "Please choose the manager who's employees you wish to view: ",
+                        choices: managerList
+                    }).then(answer => {
+                        result.forEach(res => {
+                            if (answer.manager === res.manager) {
+                                const managerName = answer.manager.split(" ");
+                                let query2 = `
+                                SELECT emp1.id, emp1.first_name, emp1.last_name, title, name AS department, salary, CONCAT (emp2.first_name, ' ', emp2.last_name) AS manager
+                                FROM employees emp1
+                            
+                                LEFT JOIN employees emp2
+                                    ON emp1.manager_id = emp2.id
+                                INNER JOIN roles
+                                    ON emp1.role_id = roles.id
+                                INNER JOIN departments
+                                    ON roles.department_id = departments.id
+                                WHERE ? and ?`;
+                                connection.query(
+                                    query2,
+                                    [{
+                                        "emp2.first_name": managerName[0]
+                                    },
+                                    {
+                                        "emp2.last_name": managerName[1]
+                                    }],
+                                    (err, result1) => {
+                                    if (err) throw err;
+                                    console.table(result1);
+                                    mainSelection();
+                                    }
+                                );
+                            }                            
+                        });
+                    });
+            });
             break;
         default:
             query1 = `
