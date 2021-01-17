@@ -54,6 +54,7 @@ const mainSelection = () => {
                     viewEmployees();
                     break;
                 case "Add Employee":
+                    //done
                     createEmployee();
                     break;
                 case "Remove Employee":
@@ -73,10 +74,10 @@ const mainSelection = () => {
                     break;
                 case "Update Employee Role":
                     //done
-                    updateRole();
+                    updateEmployeeRole();
                     break;
                 case "Update Employee Manager":
-                    updateManager();
+                    updateEmployeeManager();
                     break;
                 case "View All Departments":
                     //done
@@ -101,10 +102,96 @@ const mainSelection = () => {
         });
 }
 
+const createEmployee = () => {
+    let managerList = ["No Manager"];
+    let managerId = null;
+    let roleList = [];
+    let roleId;
+    let query1 = "SELECT id, CONCAT (first_name, ' ', last_name) AS manager FROM employees WHERE manager_id IS NULL";
+    let query2 = "SELECT id, title FROM roles";
+    connection.query(query1, (err, result1) => {
+        if (err) throw err;
+        console.log(result1);
+        result1.forEach(entry => {
+            managerList.push(entry.manager);
+        });
+        connection.query(query2, (err, result2) => {
+            if (err) throw err;
+            result2.forEach(role => {
+                roleList.push(role.title);
+            });
+            console.log(result2);
+            inquirer
+                .prompt([{
+                    name: "first",
+                    type: "input",
+                    message: "Please enter the first name of the employee you wish to add: "
+                },
+                {
+                    name: "last",
+                    type: "input",
+                    message: "Please enter the last name of the employee you wish to add: "
+                },
+                {
+                    name: "chosenRole",
+                    type: "list",
+                    message: "Please choose the role for the new employee: ",
+                    choices: roleList
+                },
+                {
+                    name: "chosenManager",
+                    type: "list",
+                    message: "Please choose the manager for the new employee: ",
+                    choices: managerList
+                }]).then(answer => {
+
+                    result2.forEach(role => {
+                        if (answer.chosenRole === role.title) {
+                            roleId = role.id;
+                        }
+                    });
+
+                    result1.forEach(entry => {
+                        if (answer.chosenManager === entry.manager) {
+                            managerId = entry.id;
+                        }
+                    });
+
+                    let sqlData;
+
+                    if (managerId === null) {
+                        sqlData = {
+                            first_name: answer.first,
+                            last_name: answer.last,
+                            role_id: roleId
+                        };
+                    } else {
+                        sqlData = {
+                            first_name: answer.first,
+                            last_name: answer.last,
+                            role_id: roleId,
+                            manager_id: managerId
+                        };
+                    }
+
+                    let query3 = `INSERT INTO employees SET ?`;
+                    connection.query(
+                        query3,
+                        sqlData,
+                        (err, res) => {
+                            if (err) throw err;
+                            console.log(res.affectedRows + " Employees added!\n");
+                            mainSelection();
+                        }
+                    );
+                });
+        });
+    });
+}
+
 // Moving some options off the main selection to make it less crowded
 const viewEmployees = () => {
 
-    
     let viewOptions = ["View All", "View By Department", "View By Role", "View By Manager"];
     inquirer
         .prompt({
@@ -274,178 +361,7 @@ const readEmployeesBy = filter => {
     }
 }
 
-/* async function retrieveDepartments() {
-    let query1 = "SELECT * FROM departments";
-    let res = await connection.query(query1, (err, result) => {
-        if (err) throw err;
-        return result;
-    });
-    return res;
-} */
-
-const createEmployee = () => {
-    let managerList = ["No Manager"];
-    let managerId = null;
-    let roleList = [];
-    let roleId;
-    let query1 = "SELECT id, CONCAT (first_name, ' ', last_name) AS manager FROM employees WHERE manager_id IS NULL";
-    let query2 = "SELECT id, title FROM roles";
-    connection.query(query1, (err, result1) => {
-        if (err) throw err;
-        console.log(result1);
-        result1.forEach(entry => {
-            managerList.push(entry.manager);
-        });
-        connection.query(query2, (err, result2) => {
-            if (err) throw err;
-            result2.forEach(role => {
-                roleList.push(role.title);
-            });
-            console.log(result2);
-            inquirer
-                .prompt([{
-                    name: "first",
-                    type: "input",
-                    message: "Please enter the first name of the employee you wish to add: "
-                },
-                {
-                    name: "last",
-                    type: "input",
-                    message: "Please enter the last name of the employee you wish to add: "
-                },
-                {
-                    name: "chosenRole",
-                    type: "list",
-                    message: "Please choose the role for the new employee: ",
-                    choices: roleList
-                },
-                {
-                    name: "chosenManager",
-                    type: "list",
-                    message: "Please choose the manager for the new employee: ",
-                    choices: managerList
-                }]).then(answer => {
-
-                    result2.forEach(role => {
-                        if (answer.chosenRole === role.title) {
-                            roleId = role.id;
-                        }
-                    });
-
-                    result1.forEach(entry => {
-                        if (answer.chosenManager === entry.manager) {
-                            managerId = entry.id;
-                        }
-                    });
-
-                    if (managerId === null) {
-                        let query3 = `
-                        INSERT INTO employees (first_name, last_name, role_id)
-                        VALUES (?, ?, ?)
-                        `;
-                        connection.query(
-                            query3,
-                            [{
-                                first_name: answer.first
-                            },{
-                                last_name: answer.last
-                            },{
-                                role_id: roleId
-                            }],
-                            (err, res) => {
-                                if (err) throw err;
-                                console.log(res.affectedRows + " Employees added!\n");
-                                mainSelection();
-                            }
-                        );
-                    } else {
-                        let query3 = `
-                        INSERT INTO employees (first_name, last_name, role_id, manager_id)
-                        VALUES (?, ?, ?, ?)
-                        `;
-                        connection.query(
-                            query3,
-                            [{
-                                first_name: answer.first
-                            },{
-                                last_name: answer.last
-                            },{
-                                role_id: roleId
-                            },{
-                                manager_id: managerId
-                            }],
-                            (err, res) => {
-                                if (err) throw err;
-                                console.log(res.affectedRows + " Employees added!\n");
-                                mainSelection();
-                            }
-                        );
-                    }
-                });
-        });
-    });
-}
-
-const createRole = () => {
-    let deptList = [];
-    let deptId;
-    let query1 = "SELECT * FROM departments";
-    connection.query(query1, (err, result) => {
-        if (err) throw err;
-        result.forEach(dept => {
-            deptList.push(dept.name);
-        });
-        inquirer
-            .prompt([{
-                name: "title",
-                type: "input",
-                message: "Please input the title for the new role: "
-            },
-            {
-                name: "salary",
-                type: "input",
-                message: "Please input the salary for the new role: "
-            },
-            {
-                name: "deptartment",
-                type: "list",
-                message: "Please choose which department this role belongs to: ",
-                choices: deptList
-            }]).then(answer => {
-                result.forEach(dept => {
-                    if (answer.deptartment === dept.name) {
-                        deptId = dept.id;
-                    }
-                });
-                let query2 = "INSERT INTO roles SET ?";
-                connection.query(
-                    query2,
-                    {
-                        title: answer.title,
-                        salary: answer.salary,
-                        department_id: deptId
-                    },
-                    (err, res) => {
-                        if (err) throw err;
-                        console.log(res.affectedRows + " Department added!\n");
-                        mainSelection();
-                    }
-                );
-            });
-    });
-}
-
-const readRoles = () => {
-    console.log("Displaying all Roles...\n");
-    let query1 = "SELECT roles.id, title, salary, name AS department FROM roles INNER JOIN departments ON roles.department_id = departments.id";
-    connection.query(query1, (err, result) => {
-        if (err) throw err;
-        console.table(result);
-        mainSelection();
-    });
-}
-
-const updateRole = () => {
+const updateEmployeeRole = () => {
     let query3 = "Select id, CONCAT (first_name, ' ', last_name) AS name FROM employees";
     let employeeList = [];
     let employeeId;
@@ -511,6 +427,145 @@ const updateRole = () => {
                         });
                 });
             });
+    });
+}
+
+const updateEmployeeManager = () => {
+    let query3 = "Select id, CONCAT (first_name, ' ', last_name) AS name FROM employees";
+    let employeeList = [];
+    let employeeId;
+    connection.query(query3, (err, result3) => {
+        if (err) throw err;
+
+        result3.forEach(employE => {
+            employeeList.push(employE.name);
+        });
+
+        inquirer
+            .prompt({
+                name: "empName",
+                type: "list",
+                message: "Please choose the employee you wish to edit: ",
+                choices: employeeList
+            }).then(answer1 => {
+
+                result3.forEach(empl => {
+                    if (answer1.empName === empl.name) {
+                        employeeId = empl.id;
+                    }
+                });
+                let managerId;
+                let managerList = [];
+                query1 = `
+                SELECT
+                    id, CONCAT (first_name, ' ', last_name) as manager
+                FROM employees
+                WHERE manager_id IS NULL
+                `;
+                connection.query(query1, (err, result) => {
+                    if (err) throw err;
+                    result.forEach(res => {
+                        managerList.push(res.manager);
+                    });
+                    inquirer
+                        .prompt({
+                            name: "manager",
+                            type: "list",
+                            message: "Please choose the manager for this employee: ",
+                            choices: managerList
+                        }).then(answer => {
+                            result.forEach(res => {
+                                if (answer.manager === res.manager) {
+                                    managerId = res.id;
+                                }
+                            });
+
+                            let query2 = "UPDATE employees SET ? WHERE ?";
+                            connection.query(
+                                query2,
+                                [{
+                                    manager_id: managerId
+                                },
+                                {
+                                    id: employeeId
+                                }],
+                                (err, res) => {
+                                    if (err) throw err;
+                                    console.log(res.affectedRows + " Employee Updated!\n");
+                                    mainSelection();
+                                }
+                            );
+                        });
+                });
+            });
+    });
+}
+
+/* async function retrieveDepartments() {
+    let query1 = "SELECT * FROM departments";
+    let res = await connection.query(query1, (err, result) => {
+        if (err) throw err;
+        return result;
+    });
+    return res;
+} */
+
+const createRole = () => {
+    let deptList = [];
+    let deptId;
+    let query1 = "SELECT * FROM departments";
+    connection.query(query1, (err, result) => {
+        if (err) throw err;
+        result.forEach(dept => {
+            deptList.push(dept.name);
+        });
+        inquirer
+            .prompt([{
+                name: "title",
+                type: "input",
+                message: "Please input the title for the new role: "
+            },
+            {
+                name: "salary",
+                type: "input",
+                message: "Please input the salary for the new role: "
+            },
+            {
+                name: "deptartment",
+                type: "list",
+                message: "Please choose which department this role belongs to: ",
+                choices: deptList
+            }]).then(answer => {
+                result.forEach(dept => {
+                    if (answer.deptartment === dept.name) {
+                        deptId = dept.id;
+                    }
+                });
+                let query2 = "INSERT INTO roles SET ?";
+                connection.query(
+                    query2,
+                    {
+                        title: answer.title,
+                        salary: answer.salary,
+                        department_id: deptId
+                    },
+                    (err, res) => {
+                        if (err) throw err;
+                        console.log(res.affectedRows + " Department added!\n");
+                        mainSelection();
+                    }
+                );
+            });
+    });
+}
+
+const readRoles = () => {
+    console.log("Displaying all Roles...\n");
+    let query1 = "SELECT roles.id, title, salary, name AS department FROM roles INNER JOIN departments ON roles.department_id = departments.id";
+    connection.query(query1, (err, result) => {
+        if (err) throw err;
+        console.table(result);
+        mainSelection();
     });
 }
 
