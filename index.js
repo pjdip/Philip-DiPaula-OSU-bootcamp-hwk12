@@ -27,17 +27,14 @@ connection.connect(err => {
 });
 
 const selections = [
-    "View All Employees",
-    "View All Employees by Department",
-    "View All Employees by Role",
-    "View All Employees by Manager",
+    "View Employees",
     "Add Employee",
     "Remove Employee",
+    "Update Employee Role",
+    "Update Employee Manager",
     "View All Roles",
     "Add Role",
     "Remove Role",
-    "Update Employee Role",
-    "Update Employee Manager",
     "View All Departments",
     "Add Department",
     "Remove Department",
@@ -53,18 +50,8 @@ const mainSelection = () => {
             choices: selections
         }).then(answer => {
             switch (answer.main) {
-                //done
-                case "View All Employees":
-                    readEmployeesBy("all");
-                    break;
-                case "View All Employees by Department":
-                    readEmployeesBy("Department");
-                    break;
-                case "View All Employees by Role":
-                    readEmployeesBy("Role");
-                    break;
-                case "View All Employees by Manager":
-                    readEmployeesBy("Manager");
+                case "View Employees":
+                    viewEmployees();
                     break;
                 case "Add Employee":
                     createEmployee();
@@ -113,13 +100,26 @@ const mainSelection = () => {
         });
 }
 
+const viewEmployees = () => {
+    let viewOptions = ["View All", "View By Department", "View By Role", "View By Manager"];
+    inquirer
+        .prompt({
+            name: "viewMethod",
+            type: "list",
+            message: "What sorting method would you like to view employees by? ",
+            choices: viewOptions
+        }).then(answer => {
+            readEmployeesBy(answer.viewMethod);
+        });
+}
+
 const readEmployeesBy = filter => {
+    let query1;
     switch (filter) {
-        case "Department":
-            let query1 = "SELECT * FROM departments";
+        case "View By Department":
+            query1 = "SELECT * FROM departments";
             connection.query(query1, (err, result) => {
                 if (err) throw err;
-                console.log(result);
                 inquirer
                     .prompt({
                         name: "dept",
@@ -127,21 +127,80 @@ const readEmployeesBy = filter => {
                         message: "Please choose the department who's employees you wish to view: ",
                         choices: result
                     }).then(answer => {
-                        if (answer.dept === result.name) {
-                            let query2 = "SELECT employees.id, first_name, last_name, title, name AS department, salary, ";
-                        }
+                        result.forEach(res => {
+                            if (answer.dept === res.name) {
+                                let query2 = `
+                                SELECT emp1.id, emp1.first_name, emp1.last_name, title, name AS department, salary, CONCAT (emp2.first_name, ' ', emp2.last_name) AS manager
+                                FROM employees emp1
+                            
+                                LEFT JOIN employees emp2
+                                    ON emp1.manager_id = emp2.id
+                                INNER JOIN roles
+                                    ON emp1.role_id = roles.id
+                                INNER JOIN departments
+                                    ON roles.department_id = departments.id
+                                WHERE ?`;
+                                connection.query(
+                                    query2,
+                                    { name: answer.dept},
+                                    (err, result1) => {
+                                    if (err) throw err;
+                                    console.table(result1);
+                                    mainSelection();
+                                    }
+                                );
+                            }                            
+                        });
                     });
-                mainSelection();
             });
             break;
-        case "Role":
-
+        case "View By Role":
+            let titleList = [];
+            query1 = "SELECT * FROM roles";
+            connection.query(query1, (err, result) => {
+                if (err) throw err;
+                result.forEach(res => {
+                    titleList.push(res.title);
+                });
+                inquirer
+                    .prompt({
+                        name: "rol",
+                        type: "list",
+                        message: "Please choose the role who's employees you wish to view: ",
+                        choices: titleList
+                    }).then(answer => {
+                        result.forEach(res => {
+                            if (answer.rol === res.title) {
+                                let query2 = `
+                                SELECT emp1.id, emp1.first_name, emp1.last_name, title, name AS department, salary, CONCAT (emp2.first_name, ' ', emp2.last_name) AS manager
+                                FROM employees emp1
+                            
+                                LEFT JOIN employees emp2
+                                    ON emp1.manager_id = emp2.id
+                                INNER JOIN roles
+                                    ON emp1.role_id = roles.id
+                                INNER JOIN departments
+                                    ON roles.department_id = departments.id
+                                WHERE ?`;
+                                connection.query(
+                                    query2,
+                                    { title: answer.rol},
+                                    (err, result1) => {
+                                    if (err) throw err;
+                                    console.table(result1);
+                                    mainSelection();
+                                    }
+                                );
+                            }                            
+                        });
+                    });
+            });
             break;
-        case "Manager":
+        case "View By Manager":
 
             break;
         default:
-            let query1 = `
+            query1 = `
             SELECT emp1.id, emp1.first_name, emp1.last_name, title, name AS department, salary, CONCAT (emp2.first_name, ' ', emp2.last_name) AS manager
             FROM employees emp1
         
@@ -354,12 +413,12 @@ const deleteRole = () => {
     inquirer
         .prompt(
         {
-            name: "removal_method",
+            name: "removalMethod",
             type: "list",
             message: "Would you like to remove roles by name or id? ",
             choices: ["id", "title"]
         }).then(answers => {
-            if (answers.removal_method === "id") {
+            if (answers.removalMethod === "id") {
                 inquirer
                     .prompt({
                         name: "byId",
@@ -379,7 +438,7 @@ const deleteRole = () => {
                             }
                         );
                     });
-            } else if (answers.removal_method === "title") {
+            } else if (answers.removalMethod === "title") {
                 inquirer
                     .prompt({
                         name: "byTitle",
@@ -454,12 +513,12 @@ const deleteDepartment = () => {
     inquirer
         .prompt(
         {
-            name: "removal_method",
+            name: "removalMethod",
             type: "list",
             message: "Would you like to remove departments by name or id? ",
             choices: ["id", "name"]
         }).then(answers => {
-            if (answers.removal_method === "id") {
+            if (answers.removalMethod === "id") {
                 inquirer
                     .prompt({
                         name: "byId",
@@ -479,7 +538,7 @@ const deleteDepartment = () => {
                             }
                         );
                     });
-            } else if (answers.removal_method === "name") {
+            } else if (answers.removalMethod === "name") {
                 inquirer
                     .prompt({
                         name: "byName",
