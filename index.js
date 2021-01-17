@@ -22,7 +22,8 @@ connection.connect(err => {
         return;
     }
     console.log("connected as id: " + connection.threadId);
-    mainSelection();
+    readEmployeesBy("Department");
+    /*     mainSelection(); */
 });
 
 const selections = [
@@ -52,36 +53,36 @@ const mainSelection = () => {
             choices: selections
         }).then(answer => {
             switch (answer.main) {
+                //done
                 case "View All Employees":
-                    viewAll();
-                    viewBy("all");
+                    readEmployeesBy("all");
                     break;
                 case "View All Employees by Department":
-                    viewBy("Department");
+                    readEmployeesBy("Department");
                     break;
                 case "View All Employees by Role":
-                    viewBy("Role");
+                    readEmployeesBy("Role");
                     break;
                 case "View All Employees by Manager":
-                    viewBy("Manager");
+                    readEmployeesBy("Manager");
                     break;
                 case "Add Employee":
-                    addEmployee();
+                    createEmployee();
                     break;
                 case "Remove Employee":
                     removeEmployee();
                     break;
                 case "View All Roles":
                     //done
-                    viewRoles();
+                    readRoles();
                     break;
                 case "Add Role":
                     //done
-                    addRole();
+                    createRole();
                     break;
                 case "Remove Role":
                     //done
-                    removeRole();
+                    deleteRole();
                     break;
                 case "Update Employee Role":
                     updateRole();
@@ -91,15 +92,15 @@ const mainSelection = () => {
                     break;
                 case "View All Departments":
                     //done
-                    viewDepartments();
+                    readDepartments();
                     break;
                 case "Add Department":
                     //done
-                    addDepartment();
+                    createDepartment();
                     break;
                 case "Remove Department":
                     //done
-                    removeDepartment();
+                    deleteDepartment();
                     break;
                 case "Exit":
                     //done
@@ -112,45 +113,7 @@ const mainSelection = () => {
         });
 }
 
-const viewAll = () => {
-    let query1 = `SELECT id, first_name, last_name, title, name, salary 
-    FROM employees
-
-    INNER JOIN roles
-        ON employees.role_id = roles.id
-    INNER JOIN departments
-        ON roles.department_id = departments.id`;
-    
-    connection.query(query1, (err, result) => {
-        if (err) throw err;
-        console.table(result);
-    });
-}
-
-/* async function viewBy(filter) {
-    switch (filter) {
-        case "Department":
-            let deptOptions = await retrieveDepartments();
-            console.log(retrieveDepartments());
-             inquirer
-                .prompt({
-
-                })
-            let query1 = "SELECT employees.id, first_name, last_name, title, name AS department, salary, "
-            break;
-        case "Role":
-
-            break;
-        case "Manager":
-
-            break;
-        default:
-            //view all
-            break;
-    }
-} */
-
-const viewBy = filter => {
+const readEmployeesBy = filter => {
     switch (filter) {
         case "Department":
             let query1 = "SELECT * FROM departments";
@@ -167,9 +130,9 @@ const viewBy = filter => {
                         if (answer.dept === result.name) {
                             let query2 = "SELECT employees.id, first_name, last_name, title, name AS department, salary, ";
                         }
-                    })
+                    });
+                mainSelection();
             });
-            mainSelection();
             break;
         case "Role":
 
@@ -178,20 +141,36 @@ const viewBy = filter => {
 
             break;
         default:
-            //view all
+            let query1 = `
+            SELECT emp1.id, emp1.first_name, emp1.last_name, title, name AS department, salary, CONCAT (emp2.first_name, ' ', emp2.last_name) AS manager
+            FROM employees emp1
+        
+            LEFT JOIN employees emp2
+                ON emp1.manager_id = emp2.id
+            INNER JOIN roles
+                ON emp1.role_id = roles.id
+            INNER JOIN departments
+                ON roles.department_id = departments.id`;
+            
+            connection.query(query1, (err, result) => {
+                if (err) throw err;
+                console.table(result);
+                mainSelection();
+            });
             break;
     }
 }
 
-const retrieveDepartments = () => {
+/* async function retrieveDepartments() {
     let query1 = "SELECT * FROM departments";
-    connection.query(query1, (err, result) => {
+    let res = await connection.query(query1, (err, result) => {
         if (err) throw err;
         return result;
     });
-}
+    return res;
+} */
 
-const addEmployee = () => {
+const createEmployee = () => {
     let managerList = ["No Manager"];
     let managerId;
     let roleList = [];
@@ -265,64 +244,7 @@ const addEmployee = () => {
     });
 }
 
-const updateRole = () => {
-    inquirer
-        .prompt({
-            name: "empID",
-            type: "input",
-            message: "Please enter the id of the employee you wish to edit: "
-        }).then(answer1 => {
-            let roleList = [];
-            let roleId;
-            let query1 = "SELECT * FROM roles";
-            connection.query(query1, (err, result) => {
-                if (err) throw err;
-                result.forEach(role => {
-                    roleList.push(role.title);
-                });
-                inquirer
-                    .prompt({
-                        name: "newRole",
-                        type: "list",
-                        message: "Please choose the title for the role this employee now has: ",
-                        choices: roleList
-                    }).then(answer2 => {
-                        result.forEach(role => {
-                            if (answer2.newRole === role.title) {
-                                roleId = role.id;
-                            }
-                        });
-                        let query2 = "UPDATE employees SET ? WHERE ?";
-                        connection.query(
-                            query2,
-                            [{
-                                role_id: roleId
-                            },
-                            {
-                                id: answer1.empID
-                            }],
-                            (err, res) => {
-                                if (err) throw err;
-                                console.log(res.affectedRows + " Department added!\n");
-                            }
-                        );
-                        mainSelection();
-                    });
-            });
-        });
-}
-
-const viewRoles = () => {
-    console.log("Displaying all Roles...\n");
-    let query1 = "SELECT roles.id, title, salary, name AS department FROM roles INNER JOIN departments ON roles.department_id = departments.id";
-    connection.query(query1, (err, result) => {
-        if (err) throw err;
-        console.table(result);
-        mainSelection();
-    });
-}
-
-const addRole = () => {
+const createRole = () => {
     let deptList = [];
     let deptId;
     let query1 = "SELECT * FROM departments";
@@ -371,7 +293,64 @@ const addRole = () => {
     });
 }
 
-const removeRole = () => {
+const readRoles = () => {
+    console.log("Displaying all Roles...\n");
+    let query1 = "SELECT roles.id, title, salary, name AS department FROM roles INNER JOIN departments ON roles.department_id = departments.id";
+    connection.query(query1, (err, result) => {
+        if (err) throw err;
+        console.table(result);
+        mainSelection();
+    });
+}
+
+const updateRole = () => {
+    inquirer
+        .prompt({
+            name: "empID",
+            type: "input",
+            message: "Please enter the id of the employee you wish to edit: "
+        }).then(answer1 => {
+            let roleList = [];
+            let roleId;
+            let query1 = "SELECT * FROM roles";
+            connection.query(query1, (err, result) => {
+                if (err) throw err;
+                result.forEach(role => {
+                    roleList.push(role.title);
+                });
+                inquirer
+                    .prompt({
+                        name: "newRole",
+                        type: "list",
+                        message: "Please choose the title for the role this employee now has: ",
+                        choices: roleList
+                    }).then(answer2 => {
+                        result.forEach(role => {
+                            if (answer2.newRole === role.title) {
+                                roleId = role.id;
+                            }
+                        });
+                        let query2 = "UPDATE employees SET ? WHERE ?";
+                        connection.query(
+                            query2,
+                            [{
+                                role_id: roleId
+                            },
+                            {
+                                id: answer1.empID
+                            }],
+                            (err, res) => {
+                                if (err) throw err;
+                                console.log(res.affectedRows + " Department added!\n");
+                            }
+                        );
+                        mainSelection();
+                    });
+            });
+        });
+}
+
+const deleteRole = () => {
     inquirer
         .prompt(
         {
@@ -424,17 +403,7 @@ const removeRole = () => {
         });
 }
 
-const viewDepartments = () => {
-    console.log("Displaying all Departments...\n");
-    let query1 = "SELECT * FROM departments";
-    connection.query(query1, (err, result) => {
-        if (err) throw err;
-        console.table(result);
-        mainSelection();
-    });
-}
-
-const addDepartment = () => {
+const createDepartment = () => {
     inquirer
         .prompt({
             name: "department",
@@ -448,7 +417,7 @@ const addDepartment = () => {
                 results.forEach(result => {
                     if (answer.department === result.name) {
                         console.log("That's already a department");
-                        addDepartment();
+                        createDepartment();
                     } else {
                         newDept = true;
                     }
@@ -471,7 +440,17 @@ const addDepartment = () => {
         });
 }
 
-const removeDepartment = () => {
+const readDepartments = () => {
+    console.log("Displaying all Departments...\n");
+    let query1 = "SELECT * FROM departments";
+    connection.query(query1, (err, result) => {
+        if (err) throw err;
+        console.table(result);
+        mainSelection();
+    });
+}
+
+const deleteDepartment = () => {
     inquirer
         .prompt(
         {
