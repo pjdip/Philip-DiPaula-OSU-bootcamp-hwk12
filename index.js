@@ -50,54 +50,41 @@ const mainSelection = () => {
         }).then(answer => {
             switch (answer.main) {
                 case "View Employees":
-                    //done
                     viewEmployees();
                     break;
                 case "Add Employee":
-                    //done
                     createEmployee();
                     break;
                 case "Remove Employee":
-                    removeEmployee();
+                    deleteEmployee();
                     break;
                 case "View All Roles":
-                    //done
                     readRoles();
                     break;
                 case "Add Role":
-                    //done
                     createRole();
                     break;
                 case "Remove Role":
-                    //done
                     deleteRole();
                     break;
                 case "Update Employee Role":
-                    //done
                     updateEmployeeRole();
                     break;
                 case "Update Employee Manager":
                     updateEmployeeManager();
                     break;
                 case "View All Departments":
-                    //done
                     readDepartments();
                     break;
                 case "Add Department":
-                    //done
                     createDepartment();
                     break;
                 case "Remove Department":
-                    //done
                     deleteDepartment();
                     break;
                 case "Exit":
-                    //done
                     connection.end();
                     break;
-
-                default:
-                    //something
             }
         });
 }
@@ -497,6 +484,42 @@ const updateEmployeeManager = () => {
                             );
                         });
                 });
+            });
+    });
+}
+
+const deleteEmployee = () => {
+    let query1 = "Select id, CONCAT (first_name, ' ', last_name) AS name FROM employees";
+    let employeeList = [];
+    let employeeId;
+    connection.query(query1, (err, result1) => {
+        if (err) throw err;
+        result1.forEach(employE => {
+            employeeList.push(employE.name);
+        });
+        inquirer
+            .prompt({
+                name: "remove",
+                type: "list",
+                message: "Please choose the employee you wish to remove: ",
+                choices: employeeList
+            }).then(answer => {
+                result1.forEach(res => {
+                    if (answer.remove === res.name) {
+                        employeeId = res.id;
+                    } 
+                });
+                connection.query(
+                    "DELETE FROM employees WHERE ?",
+                    {
+                        id: employeeId
+                    },
+                    (err, res) => {
+                        if (err) throw err;
+                        console.log(res.affectedRows + " employees removed!\n");
+                        mainSelection();
+                    }
+                );
             });
     });
 }
