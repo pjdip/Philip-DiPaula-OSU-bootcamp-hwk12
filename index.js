@@ -37,6 +37,7 @@ const selections = [
     "View All Departments",
     "Add Department",
     "Remove Department",
+    "View Department Budgets",
     "Exit"
 ];
 
@@ -75,6 +76,9 @@ const mainSelection = () => {
                     break;
                 case "View All Departments":
                     readDepartments();
+                    break;
+                case "View Department Budgets":
+                    readEmployeesBy("View By Department", true);
                     break;
                 case "Add Department":
                     createDepartment();
@@ -187,11 +191,11 @@ const viewEmployees = () => {
             message: "What sorting method would you like to view employees by? ",
             choices: viewOptions
         }).then(answer => {
-            readEmployeesBy(answer.viewMethod);
+            readEmployeesBy(answer.viewMethod, false);
         });
 }
 
-const readEmployeesBy = filter => {
+const readEmployeesBy = (filter, budget) => {
     let query1;
     switch (filter) {
         case "View By Department":
@@ -223,8 +227,17 @@ const readEmployeesBy = filter => {
                                     { name: answer.dept },
                                     (err, result1) => {
                                         if (err) throw err;
-                                        console.table(result1);
-                                        mainSelection();
+                                        if (!budget) {
+                                            console.table(result1);
+                                            mainSelection();
+                                        } else if (budget) {
+                                            let deptBudget = 0;
+                                            result1.forEach(employee => {
+                                                deptBudget += employee.salary;
+                                            });
+                                            console.log(`\nThe budget for the ${answer.dept} department is $${deptBudget}\n`);
+                                            mainSelection();
+                                        }
                                     }
                                 );
                             }                            
@@ -574,7 +587,7 @@ const createRole = () => {
                     },
                     (err, res) => {
                         if (err) throw err;
-                        console.log(res.affectedRows + " Department added!\n");
+                        console.log(res.affectedRows + " Role added!\n");
                         mainSelection();
                     }
                 );
