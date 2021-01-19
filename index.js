@@ -13,7 +13,7 @@ const connection = mysql.createConnection({
     database: 'employee_db'
 });
 
-const query = util.promisify(connection.query);
+/* const query = util.promisify(connection.query); */
 
 // Establish Connection
 connection.connect(err => {
@@ -21,7 +21,7 @@ connection.connect(err => {
         console.error("error connecting: " + err.stack);
         return;
     }
-    console.log("connected as id: " + connection.threadId);
+/*     console.log("connected as id: " + connection.threadId); */
     mainSelection();
 });
 

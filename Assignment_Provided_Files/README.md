@@ -30,19 +30,19 @@ Design the following database schema containing three tables:
   
 Build a command-line application that at a minimum allows the user to:
 
-  * Add 1departments, 1roles, 1employees
+  * Add departments, roles, employees
 
-  * View 1departments, 1roles, 1employees
+  * View departments, roles, employees
 
-  * Update employee 1roles
+  * Update employee roles
 
 Bonus points if you're able to:
 
-  * 1Update employee managers
+  * Update employee managers
 
-  * 1View employees by manager
+  * View employees by manager
 
-  * Delete 1departments, 1roles, and 1employees
+  * Delete departments, roles, and employees
 
   * View the total utilized budget of a department -- ie the combined salaries of all employees in that department
 
