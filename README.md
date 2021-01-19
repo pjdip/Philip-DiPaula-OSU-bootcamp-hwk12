@@ -25,11 +25,17 @@ Once you are presented with the list of options, you will be able to make change
 
 Here are some screenshots:
 
-Main Menu: ![main](assets/mainTable.png/)
+Main Menu: ![menu](assets/mainTable.png)
+
+
 Employee Viewing Options: ![view](assets/viewOptions.png)
+
+
 Table Display Example: ![display](assets/displayExample.png)
 
-Here is a link to a video [walkthrough]()
+
+Here is a link to a video [walkthrough](https://drive.google.com/file/d/1kiJ4GQHLLKpqKCKIW3U47NnphSOt73__/view)
+(sorry, had to rush this since you only get 5 min videos with free version of screencastify)
 
 ## Credits
 

@@ -31,8 +31,6 @@ CREATE TABLE employees (
 );
 
 
-/* as setting tabel headings */
-SELECT emp.first_name AS employee, mgr.first_name AS manager
-/* emp & mgr are alias */
+/* SELECT emp.first_name AS employee, mgr.first_name AS manager
 FROM employees emp
-LEFT JOIN employees mgr ON mgr.id = emp.manager_id;
+LEFT JOIN employees mgr ON mgr.id = emp.manager_id; */

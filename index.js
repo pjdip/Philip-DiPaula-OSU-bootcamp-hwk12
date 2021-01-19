@@ -455,7 +455,7 @@ const updateEmployeeManager = () => {
                     }
                 });
                 let managerId;
-                let managerList = [];
+                let managerList = ["No Manager"];
                 query1 = `
                 SELECT
                     id, CONCAT (first_name, ' ', last_name) as manager
